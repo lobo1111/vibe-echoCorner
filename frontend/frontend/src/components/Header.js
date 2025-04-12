@@ -7,17 +7,18 @@ import ProfileIcon from './ProfileIcon';
  * 
  * @param {Object} props Component props
  * @param {Function} props.onProfilePress Function to call when the profile icon is pressed
+ * @param {Function} props.onProfile Function to call when the profile option is selected
  * @param {Function} props.onLogout Function to call when the logout option is selected
  * @returns {React.Component} The Header component
  */
-const Header = ({ onProfilePress, onLogout }) => {
+const Header = ({ onProfilePress, onProfile, onLogout }) => {
   return (
     <View style={styles.header} testID="header">
       <View style={styles.titleContainer}>
         <Text style={styles.title}>echoCorner</Text>
         <Text style={styles.welcomeText}>Welcome to echoCorner!</Text>
       </View>
-      <ProfileIcon onPress={onProfilePress} onLogout={onLogout} />
+      <ProfileIcon onPress={onProfilePress} onProfile={onProfile} onLogout={onLogout} />
     </View>
   );
 };

@@ -7,10 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
  * 
  * @param {Object} props Component props
  * @param {Function} props.onPress Function to call when the icon is pressed
+ * @param {Function} props.onProfile Function to call when profile is selected
  * @param {Function} props.onLogout Function to call when logout is selected
  * @returns {React.Component} The ProfileIcon component
  */
-const ProfileIcon = ({ onPress, onLogout }) => {
+const ProfileIcon = ({ onPress, onProfile, onLogout }) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const handleIconPress = () => {
@@ -20,6 +21,11 @@ const ProfileIcon = ({ onPress, onLogout }) => {
 
   const handleMenuClose = () => {
     setMenuVisible(false);
+  };
+
+  const handleProfilePress = () => {
+    setMenuVisible(false);
+    if (onProfile) onProfile();
   };
 
   const handleLogout = () => {
@@ -47,7 +53,18 @@ const ProfileIcon = ({ onPress, onLogout }) => {
         onRequestClose={handleMenuClose}
       >
         <Pressable style={styles.modalOverlay} onPress={handleMenuClose}>
-          <View style={styles.menuContainer}>
+          <View style={styles.menuContainer} testID="profile-dropdown-menu">
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={handleProfilePress}
+              testID="profile-button"
+            >
+              <Ionicons name="person-outline" size={20} color="#2A2D34" />
+              <Text style={styles.menuText}>Profile</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.menuDivider} />
+            
             <TouchableOpacity 
               style={styles.menuItem} 
               onPress={handleLogout}
@@ -87,6 +104,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 70,
     marginRight: 16,
+    minWidth: 180,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -100,11 +118,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
+    borderRadius: 4,
   },
   menuText: {
     marginLeft: 8,
     fontSize: 16,
     color: '#2A2D34',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#E1E2E5',
+    marginHorizontal: 4,
   },
 });
 
