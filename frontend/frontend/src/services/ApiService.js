@@ -1,130 +1,251 @@
-import { Auth } from '../config/auth';
-import { DEFAULT_HEADERS, DEFAULT_TIMEOUT } from '../config/api';
-
 /**
- * Base API service class
- * Provides common functionality for API requests including authentication
+ * Base API service for making HTTP requests using fetch instead of axios
  */
 class ApiService {
   /**
-   * Create a new ApiService instance
-   * @param {string} baseUrl - Base URL for the API
+   * @param {string} baseURL - Base URL for the API
+   * @param {Object} config - Additional configuration
    */
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
-  /**
-   * Get the authenticated user's token
-   * @returns {Promise<string>} Authentication token
-   */
-  async getAuthToken() {
-    try {
-      // In a real Cognito implementation, we would get an ID token or access token
-      // For the mock Auth, we'll just return a simple token if authenticated
-      const user = await Auth.currentAuthenticatedUser();
-      return `mock-token-${user.attributes.sub}`;
-    } catch (error) {
-      console.error('Error getting auth token:', error);
-      throw new Error('Failed to get authentication token');
-    }
-  }
-
-  /**
-   * Get headers for API requests, including authentication
-   * @param {boolean} includeAuth - Whether to include authentication headers
-   * @returns {Promise<Object>} Headers for the request
-   */
-  async getHeaders(includeAuth = true) {
-    const headers = { ...DEFAULT_HEADERS };
+  constructor(baseURL, config = {}) {
+    this.baseURL = baseURL;
+    this.isDev = process.env.NODE_ENV === 'development';
+    this.timeout = config.timeout || 10000;
     
-    if (includeAuth) {
-      const token = await this.getAuthToken();
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    // By default, don't use credentials in development to avoid CORS issues
+    this.withCredentials = typeof config.withCredentials !== 'undefined' ? 
+      config.withCredentials : !this.isDev;
     
-    return headers;
-  }
-
-  /**
-   * Make a GET request to the API
-   * @param {string} endpoint - API endpoint to call
-   * @param {Object} options - Additional options for the request
-   * @returns {Promise<any>} Response data
-   */
-  async get(endpoint, options = {}) {
-    const { params, includeAuth = true } = options;
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(config.headers || {})
+    };
     
-    // Add query parameters if provided
-    if (params) {
-      Object.keys(params).forEach(key => {
-        url.searchParams.append(key, params[key]);
-      });
-    }
-    
-    const headers = await this.getHeaders(includeAuth);
-    
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+    // In development mode, warn about CORS config
+    if (this.isDev) {
+      console.log(`ApiService initialized with baseURL: ${baseURL}`);
+      console.log(`Credentials mode: ${this.withCredentials ? 'include' : 'omit'}`);
       
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      if (!this.withCredentials) {
+        console.log('CORS: Using "omit" credentials mode for development - make sure API Gateway has CORS enabled');
       }
-      
+    }
+  }
+
+  /**
+   * Helper to get auth token
+   * @returns {string|null} Auth token
+   */
+  getAuthToken() {
+    return localStorage.getItem('authToken');
+  }
+
+  /**
+   * Helper to handle API responses
+   * @param {Response} response - Fetch Response object
+   * @returns {Promise<Object>} Response data
+   */
+  async handleResponse(response) {
+    if (!response.ok) {
+      // Handle specific errors
+      if (response.status === 401) {
+        console.warn('Authentication error');
+      } else if (response.status === 429) {
+        console.warn('Rate limit exceeded');
+      }
+
+      // Try to parse error response
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+
+      throw {
+        status: response.status,
+        message: errorData.message || 'An error occurred',
+        data: errorData
+      };
+    }
+
+    // Return empty object for 204 No Content
+    if (response.status === 204) {
+      return {};
+    }
+
+    // Parse JSON response
+    try {
       return await response.json();
     } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out');
+      if (this.isDev) {
+        console.error('Error parsing JSON:', error);
+      }
+      return {};
+    }
+  }
+
+  /**
+   * Create request options with defaults
+   * @param {string} method - HTTP method
+   * @param {Object} data - Request body data
+   * @param {Object} options - Additional options
+   * @returns {Object} Request options
+   */
+  createRequestOptions(method, data, options = {}) {
+    const headers = { ...this.defaultHeaders, ...options.headers };
+    
+    // Add auth token if available
+    const token = this.getAuthToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const requestOptions = {
+      method,
+      headers,
+      ...options
+    };
+
+    // Add credentials mode
+    if (this.withCredentials) {
+      requestOptions.credentials = 'include';
+    }
+
+    // Add body for non-GET requests
+    if (method !== 'GET' && data) {
+      requestOptions.body = JSON.stringify(data);
+    }
+
+    return requestOptions;
+  }
+
+  /**
+   * Make API request with timeout
+   * @param {string} url - Request URL
+   * @param {Object} options - Request options
+   * @returns {Promise} Request promise
+   */
+  async request(url, options) {
+    const fullUrl = this.buildUrl(url, options.params);
+    
+    try {
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject({ message: `Request timeout after ${this.timeout}ms` }), this.timeout);
+      });
+      
+      // Race fetch against timeout
+      const response = await Promise.race([
+        fetch(fullUrl, options),
+        timeoutPromise
+      ]);
+      
+      return await this.handleResponse(response);
+    } catch (error) {
+      // Log error in development
+      if (this.isDev) {
+        console.error('API Request Error:', error);
       }
       throw error;
     }
   }
 
   /**
-   * Make a POST request to the API
-   * @param {string} endpoint - API endpoint to call
-   * @param {Object} data - Data to send in the request body
-   * @param {Object} options - Additional options for the request
-   * @returns {Promise<any>} Response data
+   * Build full URL with query parameters
+   * @param {string} path - URL path
+   * @param {Object} params - Query parameters
+   * @returns {string} Full URL
    */
-  async post(endpoint, data, options = {}) {
-    const { includeAuth = true } = options;
-    const url = `${this.baseUrl}${endpoint}`;
-    const headers = await this.getHeaders(includeAuth);
+  buildUrl(path, params) {
+    // Ensure path starts with slash
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const url = new URL(`${this.baseURL}${normalizedPath}`);
     
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(data),
-        signal: controller.signal
+    // Add query parameters
+    if (params && typeof params === 'object') {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, value);
+        }
       });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out');
-      }
-      throw error;
+    }
+    
+    return url.toString();
+  }
+
+  /**
+   * Make a GET request
+   * @param {string} url - URL to request
+   * @param {Object} options - Request options
+   * @returns {Promise} Response
+   */
+  async get(url, options = {}) {
+    const requestOptions = this.createRequestOptions('GET', null, options);
+    const data = await this.request(url, requestOptions);
+    return { data };
+  }
+
+  /**
+   * Make a POST request
+   * @param {string} url - URL to request
+   * @param {Object} data - Data to send
+   * @param {Object} options - Request options
+   * @returns {Promise} Response
+   */
+  async post(url, data = {}, options = {}) {
+    const requestOptions = this.createRequestOptions('POST', data, options);
+    const responseData = await this.request(url, requestOptions);
+    return { data: responseData };
+  }
+
+  /**
+   * Make a PUT request
+   * @param {string} url - URL to request
+   * @param {Object} data - Data to send
+   * @param {Object} options - Request options
+   * @returns {Promise} Response
+   */
+  async put(url, data = {}, options = {}) {
+    const requestOptions = this.createRequestOptions('PUT', data, options);
+    const responseData = await this.request(url, requestOptions);
+    return { data: responseData };
+  }
+
+  /**
+   * Make a DELETE request
+   * @param {string} url - URL to request
+   * @param {Object} options - Request options
+   * @returns {Promise} Response
+   */
+  async delete(url, options = {}) {
+    const requestOptions = this.createRequestOptions('DELETE', null, options);
+    const responseData = await this.request(url, requestOptions);
+    return { data: responseData };
+  }
+
+  /**
+   * Make a PATCH request
+   * @param {string} url - URL to request
+   * @param {Object} data - Data to send
+   * @param {Object} options - Request options
+   * @returns {Promise} Response
+   */
+  async patch(url, data = {}, options = {}) {
+    const requestOptions = this.createRequestOptions('PATCH', data, options);
+    const responseData = await this.request(url, requestOptions);
+    return { data: responseData };
+  }
+
+  /**
+   * Set authorization token
+   * @param {string} token - JWT token
+   */
+  setAuthToken(token) {
+    if (token) {
+      localStorage.setItem('authToken', token);
+    } else {
+      localStorage.removeItem('authToken');
     }
   }
 }
