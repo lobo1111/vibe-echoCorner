@@ -46,7 +46,9 @@ const safeLocalStorage = {
 };
 
 // Make localStorage available to our Auth module in all environments
-global.localStorage = global.localStorage || safeLocalStorage;
+if (!global.localStorage) {
+  global.localStorage = safeLocalStorage;
+}
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
