@@ -1,0 +1,8 @@
+Resources: 
+  DummyResource: 
+    Type: 'AWS::CloudFormation::WaitConditionHandle' 
+Outputs: 
+  ApiGatewayRootResourceId: 
+    Value: tqwoja6hg4 
+    Export: 
+      Name: ApiGatewayRootResourceId 

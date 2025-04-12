@@ -1,0 +1,17 @@
+{
+    "items": [
+        {
+            "id": "i37bti",
+            "parentId": "tqwoja6hg4",
+            "pathPart": "notifications",
+            "path": "/notifications",
+            "resourceMethods": {
+                "GET": {}
+            }
+        },
+        {
+            "id": "tqwoja6hg4",
+            "path": "/"
+        }
+    ]
+}
