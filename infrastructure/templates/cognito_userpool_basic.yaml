@@ -48,6 +48,30 @@ Resources:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
       PreventUserExistenceErrors: ENABLED
+      LogoutURLs:
+        - 'http://localhost:19006/' # Default Expo web URL
+        - 'https://your-production-domain.com/' # Replace with production URL when available
+      CallbackURLs:
+        - 'http://localhost:19006/' # Default Expo web URL
+        - 'https://your-production-domain.com/' # Replace with production URL when available
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders:
+        - COGNITO
+
+  # Cognito Domain for hosted UI and proper signout flow
+  UserPoolDomain:
+    Type: 'AWS::Cognito::UserPoolDomain'
+    Properties:
+      Domain: !Sub '${UserPoolName}-${AWS::AccountId}'
+      UserPoolId: !Ref CognitoUserPool
 
 Outputs:
   UserPoolId:
@@ -66,4 +90,10 @@ Outputs:
     Value: !GetAtt CognitoUserPool.Arn
     Description: ARN of the Cognito User Pool
     Export:
-      Name: !Sub '${AWS::StackName}-UserPoolArn' 
+      Name: !Sub '${AWS::StackName}-UserPoolArn'
+
+  UserPoolDomainUrl:
+    Value: !Sub 'https://${UserPoolName}-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com'
+    Description: URL of the Cognito User Pool Domain
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolDomainUrl' 
