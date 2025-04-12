@@ -12,7 +12,10 @@ import ProfileIcon from './ProfileIcon';
 const Header = ({ onProfilePress }) => {
   return (
     <View style={styles.header} testID="header">
-      <Text style={styles.title}>echoCorner</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>echoCorner</Text>
+        <Text style={styles.welcomeText}>Welcome to echoCorner!</Text>
+      </View>
       <ProfileIcon onPress={onProfilePress} />
     </View>
   );
@@ -21,7 +24,7 @@ const Header = ({ onProfilePress }) => {
 const styles = StyleSheet.create({
   header: {
     width: '100%',
-    height: 60,
+    height: 70,
     backgroundColor: '#2A2D34', // Primary color from style guide
     flexDirection: 'row',
     alignItems: 'center',
@@ -30,10 +33,19 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 10,
   },
+  titleContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#F4F4F4', // Secondary color from style guide
+  },
+  welcomeText: {
+    fontSize: 14,
+    color: '#F4F4F4', // Secondary color from style guide
+    marginTop: 2,
   },
 });
 
