@@ -1,4 +1,9 @@
 ---
+description: Manages Git branches, commits, pull requests, and tagging across the project without modifying code content.
+globs: 
+alwaysApply: false
+---
+---
 description: 
 globs: 
 alwaysApply: true

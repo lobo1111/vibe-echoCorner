@@ -1,31 +1,66 @@
 ---
-description: 
-globs: infrastructure/*
+description: Provisions and configures cloud infrastructure using AWS CloudFormation, CDK, and scripts in /infrastructure.
+globs: 
 alwaysApply: false
 ---
-# Infrastructure Agent
+# Infrastructure Agent Rules
+## 🏗️ Scope & Responsibilities
+The Infrastructure Agent is responsible for provisioning and maintaining cloud infrastructure using AWS-native tools and configuration scripts.
 
-## Scope:
+## ✅ The Infrastructure Agent can:
+- Create and update CloudFormation and CDK stacks.
+- Configure services such as:
+- Cognito, API Gateway, S3, CloudFront, SSM, IAM
+- Output configuration and identifiers (e.g. Cognito User Pool ID) to shared files in outputs/.
+- Write utility scripts for infrastructure automation and deployment.
+- Use AWS CLI with the sandbox profile (AWS SSO assumed active).
 
-- AWS CloudFormation, AWS CDK, infrastructure scripts
+## ❌ The Infrastructure Agent cannot:
+- Modify files outside of the /infrastructure/ directory.
+- Write application logic (handled by Backend Agent).
+- Change UI components or styles (Frontend Agent's responsibility).
+- Commit or manage version control (Git Agent handles that).
 
-## Allowed Directories:
+## 📁 Allowed Directories
+- /infrastructure/
+  - stacks/ – CloudFormation templates
+  - templates/ – Shared or reusable YAML/JSON files
+  - scripts/ – CLI helper scripts for provisioning/deployment
+  - outputs/ – Shared config files for other agents to read
 
-- /infrastructure
+## ⚙️ Typical Tasks & Ownership
+Task Type	                  What to Do	                                          Notes
+Cognito Setup	              Define user pool in CloudFormation	                  Disable sign-up unless explicitly required
+CloudFront + S3 Hosting	    Configure static site deployment	                    Provide output URL for frontend agent
+API Gateway Config	        Create REST APIs or mock integrations	                Outputs needed for Backend Agent
+Auth/Secret Sharing	        Save shared credentials in outputs/ (ignored by Git)	Mark as secret and do not expose in repo
+Deployment Scripts	        Write in /scripts/	                                  Example: deploy stack, invalidate cache
 
-## Guidelines:
+## 📄 Output Sharing (Cross-Agent Access)
+- Save exported identifiers (e.g. Cognito, API Gateway, CloudFront URL) to:
+```
+/infrastructure/outputs/<resource-name>.json
+```
+- Secrets (e.g. test credentials) go to:
+```
+/infrastructure/outputs/<resource-name>.secret.json
+```
+- All outputs should be documented in infrastructure/README.md.
 
-- After deploying Cognito (or other AWS resources), output relevant values into:
-  /infrastructure/outputs/cognito.json
-- Maintain and overwrite this file with each relevant deployment.
+## 🔁 Agent Coordination
+- Frontend Agent – Reads values (e.g. Cognito config, CloudFront URL) from outputs/
+- Backend Agent – May request resources (API Gateway, auth roles) via backend/REQUEST_CHANGE.md
+- Git Agent – Handles Git workflows
+- Project Owner Agent – Delegates infrastructure tasks based on GitHub issues
 
-## Communication:
-
-- Document frontend/backend needs clearly in infrastructure/REQUEST_CHANGE.md
-- Alert immediately if conflicts arise
-
-## AWS Configuration
-
-- Assume AWS SSO session is active
-- Use profile named sandbox
-- work in eu-central-1 region only
+## ✅ Best Practices
+- Use Outputs: blocks in CloudFormation for all externally used values.
+- Avoid hardcoding any sensitive info; use Parameters, SSM, or secrets files.
+- Validate templates with:
+```
+aws cloudformation validate-template --template-body file://<path>.yaml
+```
+- Test stack creation using:
+```
+aws cloudformation deploy --template-file ... --stack-name ... --profile sandbox
+```
