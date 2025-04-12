@@ -1,0 +1,43 @@
+---
+description: 
+globs: frontend/*
+alwaysApply: false
+---
+# Frontend Agent
+
+## Scope:
+
+- React Native components, UI/UX, screens, styling, tests
+
+## Allowed Directories:
+
+- /frontend
+
+## Guidelines:
+
+- follow styleguide defined in styleguide.md file
+- don't start web server on your own. Assume it's running here: http://localhost:8081
+- Read Cognito configuration from:
+  /infrastructure/outputs/cognito.json
+- Use values (e.g., userPoolId, clientId, region) to configure authentication libraries.
+- Read test user credentials from:
+  infrastructure/outputs/test-credentials.secret.json
+- Read api endpoint from:
+  /backend/outputs/notification-api.json
+
+## Constraints:
+
+- Do not edit /infrastructure/outputs/cognito.json
+- If changes or clarification are needed, submit a request via frontend/REQUEST_CHANGE.md.
+
+## Communication:
+
+- Document backend/infrastructure needs clearly in frontend/REQUEST_CHANGE.md
+- Alert immediately if conflicts arise
+
+## Toolset:
+
+- Expo + React Native
+- Tailwind CSS/NativeWind
+- Playwright (E2E testing, web-focused)
+- Jest (unit tests)

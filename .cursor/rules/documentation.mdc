@@ -1,0 +1,18 @@
+---
+description: 
+globs: docs/*,requirements/*
+alwaysApply: false
+---
+# Scope:
+
+- Project documentation, architectural diagrams, specifications
+
+## Allowed Directories:
+
+- /docs
+- /requirements
+
+## Communication:
+
+- Consolidate documentation clearly
+- Alert immediately if conflicts arise

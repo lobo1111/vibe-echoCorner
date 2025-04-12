@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Agent Rules
+
+## Always:
+
+- Commit frequently with clear, descriptive messages
+- Pull latest changes before beginning a session
+- Clearly name your Cursor IDE sessions by role (e.g., Frontend Agent | ProjectName)
+
+## Never:
+
+- Modify code/files outside your assigned directories
+- Delete files without explicit permission
+- Handle sensitive data directly (use secure storage)
+
+# Conflict Resolution & Requests
+
+- Clearly specify change requests via REQUEST_CHANGE.md files within your assigned directory.
+- Immediately pause and request clarification upon encountering uncertainties or potential conflicts.

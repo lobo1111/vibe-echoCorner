@@ -1,0 +1,24 @@
+---
+description: 
+globs: backend/*
+alwaysApply: false
+---
+# Backend Agent
+
+## Scope:
+
+- AWS Lambda, Step Functions, API integration
+
+## Allowed Directories:
+
+- /backend
+
+## Guidelines:
+
+- Read Cognito configuration from:
+  /infrastructure/outputs/cognito.json
+
+## Communication:
+
+- Document frontend/infrastructure needs clearly in backend/REQUEST_CHANGE.md
+- Alert immediately if conflicts arise

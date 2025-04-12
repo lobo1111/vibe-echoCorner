@@ -1,0 +1,214 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API Gateway REST API for returning mock notifications'
+
+Parameters:
+  CognitoUserPoolId:
+    Type: String
+    Default: 'eu-central-1_KYoRPR6pm'
+    Description: 'The Cognito User Pool ID to use for authorization'
+
+Resources:
+  NotificationsRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: NotificationsApi
+      Description: API for returning mock notifications
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  NotificationsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref NotificationsRestApi
+      ParentId: !GetAtt NotificationsRestApi.RootResourceId
+      PathPart: 'notifications'
+
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: CognitoUserPoolAuthorizer
+      RestApiId: !Ref NotificationsRestApi
+      Type: COGNITO_USER_POOLS
+      IdentitySource: 'method.request.header.Authorization'
+      ProviderARNs:
+        - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolId}'
+
+  NotificationsGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref NotificationsRestApi
+      ResourceId: !Ref NotificationsResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationScopes:
+        - 'aws.cognito.signin.user.admin'
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+            ResponseTemplates:
+              application/json: |
+                #set($inputRoot = $input.path('$'))
+                [
+                  {
+                    "id": "1",
+                    "title": "New comment on your post",
+                    "author": "Jane Doe",
+                    "createdAt": "2025-04-10T14:23:00Z",
+                    "likes": 12,
+                    "comments": 3
+                  },
+                  {
+                    "id": "2",
+                    "title": "Weekly digest ready",
+                    "author": "System",
+                    "createdAt": "2025-04-10T08:00:00Z",
+                    "likes": 0,
+                    "comments": 0
+                  },
+                  {
+                    "id": "3",
+                    "title": "New follower: @techie42",
+                    "author": "System",
+                    "createdAt": "2025-04-09T16:41:00Z",
+                    "likes": 0,
+                    "comments": 0
+                  },
+                  {
+                    "id": "4",
+                    "title": "Post featured on homepage!",
+                    "author": "Moderator",
+                    "createdAt": "2025-04-09T14:10:00Z",
+                    "likes": 38,
+                    "comments": 10
+                  },
+                  {
+                    "id": "5",
+                    "title": "Update to privacy policy",
+                    "author": "System",
+                    "createdAt": "2025-04-08T12:00:00Z",
+                    "likes": 1,
+                    "comments": 0
+                  },
+                  {
+                    "id": "6",
+                    "title": "Event reminder: DevTalks Live",
+                    "author": "Admin",
+                    "createdAt": "2025-04-07T18:45:00Z",
+                    "likes": 9,
+                    "comments": 2
+                  },
+                  {
+                    "id": "7",
+                    "title": "You earned a badge: Top Commenter",
+                    "author": "System",
+                    "createdAt": "2025-04-07T09:30:00Z",
+                    "likes": 25,
+                    "comments": 5
+                  },
+                  {
+                    "id": "8",
+                    "title": "Daily summary available",
+                    "author": "System",
+                    "createdAt": "2025-04-06T06:00:00Z",
+                    "likes": 0,
+                    "comments": 0
+                  },
+                  {
+                    "id": "9",
+                    "title": "Post liked by @dev_guru",
+                    "author": "System",
+                    "createdAt": "2025-04-05T20:15:00Z",
+                    "likes": 14,
+                    "comments": 1
+                  },
+                  {
+                    "id": "10",
+                    "title": "New message from @designlady",
+                    "author": "System",
+                    "createdAt": "2025-04-05T15:22:00Z",
+                    "likes": 0,
+                    "comments": 1
+                  },
+                  {
+                    "id": "11",
+                    "title": "Welcome to the beta program!",
+                    "author": "Admin",
+                    "createdAt": "2025-04-04T09:00:00Z",
+                    "likes": 11,
+                    "comments": 2
+                  },
+                  {
+                    "id": "12",
+                    "title": "Security tip of the week",
+                    "author": "System",
+                    "createdAt": "2025-04-03T12:35:00Z",
+                    "likes": 2,
+                    "comments": 0
+                  },
+                  {
+                    "id": "13",
+                    "title": "New reaction to your post",
+                    "author": "Jane Doe",
+                    "createdAt": "2025-04-03T10:50:00Z",
+                    "likes": 17,
+                    "comments": 4
+                  },
+                  {
+                    "id": "14",
+                    "title": "Poll results: Favorite dev tool",
+                    "author": "Community",
+                    "createdAt": "2025-04-02T18:10:00Z",
+                    "likes": 23,
+                    "comments": 7
+                  },
+                  {
+                    "id": "15",
+                    "title": "You've been mentioned in a comment",
+                    "author": "Alex Dev",
+                    "createdAt": "2025-04-01T14:00:00Z",
+                    "likes": 6,
+                    "comments": 2
+                  }
+                ]
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - NotificationsGetMethod
+    Properties:
+      RestApiId: !Ref NotificationsRestApi
+      Description: 'Production deployment for Notifications API'
+
+  ApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId: !Ref ApiDeployment
+      RestApiId: !Ref NotificationsRestApi
+      StageName: 'prod'
+
+Outputs:
+  ApiEndpoint:
+    Description: 'API Gateway endpoint URL for prod stage'
+    Value: !Sub 'https://${NotificationsRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/notifications'
+  ApiId:
+    Description: 'API Gateway ID'
+    Value: !Ref NotificationsRestApi
+  ApiStageName:
+    Description: 'API Gateway stage name'
+    Value: !Ref ApiStage
+  ApiUrl:
+    Description: 'API Gateway base URL for prod stage'
+    Value: !Sub 'https://${NotificationsRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Export:
+      Name: NotificationApiUrl 

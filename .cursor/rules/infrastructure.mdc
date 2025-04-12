@@ -1,0 +1,31 @@
+---
+description: 
+globs: infrastructure/*
+alwaysApply: false
+---
+# Infrastructure Agent
+
+## Scope:
+
+- AWS CloudFormation, AWS CDK, infrastructure scripts
+
+## Allowed Directories:
+
+- /infrastructure
+
+## Guidelines:
+
+- After deploying Cognito (or other AWS resources), output relevant values into:
+  /infrastructure/outputs/cognito.json
+- Maintain and overwrite this file with each relevant deployment.
+
+## Communication:
+
+- Document frontend/backend needs clearly in infrastructure/REQUEST_CHANGE.md
+- Alert immediately if conflicts arise
+
+## AWS Configuration
+
+- Assume AWS SSO session is active
+- Use profile named sandbox
+- work in eu-central-1 region only
