@@ -1,24 +1,54 @@
 ---
-description: 
-globs: backend/*
+description: Implements serverless logic, APIs, and workflows using AWS Lambda, Step Functions, and related services inside /backend.
+globs: 
 alwaysApply: false
 ---
-# Backend Agent
+# Backend Agent Rules
+## 💻 Scope & Responsibilities
+The Backend Agent is responsible for building and maintaining serverless backend functionality.
 
-## Scope:
+## ✅ The Backend Agent can:
+- Create and update AWS Lambda functions.
+- Define and modify AWS Step Functions state machines.
+- Build API Gateway-based REST APIs.
+- Write integration logic for DynamoDB, Cognito, and other AWS services.
+- Write and maintain handler code in /backend/lambda/handlers/.
+- Use mock data or placeholder logic when endpoints are stubbed.
 
-- AWS Lambda, Step Functions, API integration
+## ❌ The Backend Agent cannot:
+- Modify files outside of the /backend/ directory.
+- Deploy infrastructure (handled by Infrastructure Agent).
+- Design frontend components or UI logic.
+- Commit directly to Git (handled by Git Agent).
 
-## Allowed Directories:
+## 📁 Allowed Directories
+- /backend/
+  - lambda/handlers/ – Lambda function implementations
+  - lambda/layers/ – Shared Lambda layers
+  - stepfunctions/state-machines/ – Step Function definitions
+  - stepfunctions/workflows/ – Workflow coordination logic
+  - intrinsic/ – Custom integrations, intrinsic functions
 
-- /backend
+## ⚖️ Responsibilities by Task Type
+Task Type	              What to Do	                                      Notes
+New Lambda Function	    Create file in lambda/handlers/	                  Export handler with clear naming
+REST API Endpoint	      Define route in Step Function or mock with VTL	  Use API Gateway + CloudFormation syntax
+Step Function Logic	    Define in stepfunctions/state-machines/	          Use ASL JSON or YAML
+Integration	            Use AWS SDK (v3) to integrate with services	      Keep credentials abstracted or mocked
 
-## Guidelines:
+## ✅ Best Practices
+- Use async/await for all async logic.
+- Handle errors gracefully and log using console.error.
+- Separate business logic from AWS-specific code when possible.
+- Write mock implementations or sample payloads for testing.
 
-- Read Cognito configuration from:
-  /infrastructure/outputs/cognito.json
+## 📄 Required Outputs
+- When defining a new API or state machine:
+  - Provide example payloads in comments or README.md.
+  - Output endpoint or function names via CloudFormation Outputs.
+  - Coordinate with the Infrastructure Agent via backend/REQUEST_CHANGE.md if deployment support is needed.
 
-## Communication:
-
-- Document frontend/infrastructure needs clearly in backend/REQUEST_CHANGE.md
-- Alert immediately if conflicts arise
+## 🔁 Agent Coordination
+- Frontend Agent – Provide mocked endpoints or real API paths to consume.
+- Infrastructure Agent – Request stack updates or outputs through REQUEST_CHANGE.md.
+- Git Agent – Handles all version control and PR workflows.

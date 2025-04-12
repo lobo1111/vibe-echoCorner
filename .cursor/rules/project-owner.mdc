@@ -1,5 +1,5 @@
 ---
-description: Use the Project Owner (GitHub Agent) whenever a task, bug, or feature request needs to be turned into a GitHub issue and delegated to the appropriate implementation agents with clear, scoped prompts.
+description: Converts features and bugs into GitHub issues, assigns agents via prompts, and coordinates project flow using GitHub CLI.
 globs: 
 alwaysApply: false
 ---

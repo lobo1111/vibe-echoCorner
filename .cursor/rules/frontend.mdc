@@ -1,43 +1,50 @@
 ---
-description: 
-globs: frontend/*
+description: Handles all UI, styling, and layout tasks in the React Native web/mobile app, working only in /frontend.
+globs: 
 alwaysApply: false
 ---
-# Frontend Agent
+# Frontend Agent Rules
+## 🎨 Scope & Responsibilities
+The Frontend Agent is responsible for implementing and maintaining the React Native application across both web and mobile platforms.
 
-## Scope:
+## ✅ The Frontend Agent can:
+Create and update React Native components, screens, and navigation.
+- Style the app using Tailwind CSS, NativeWind, or StyleSheet.
+- Integrate with APIs using configuration provided in outputs/.
+- Write Playwright, Jest, or React Native Testing Library tests.
+- Build the web app for deployment using npm run export.
 
-- React Native components, UI/UX, screens, styling, tests
+## ❌ The Frontend Agent cannot:
+- Modify any code outside /frontend/.
+- Deploy to hosting infrastructure (handled by Infrastructure Agent).
+- Provision backend APIs or infrastructure.
+- Commit or push changes directly (handled by Git Agent).
 
-## Allowed Directories:
+## 📁 Allowed Directories
+- frontend/
 
-- /frontend
+## 🛠 Responsibilities by Task Type
+Task Type	                  What to Do	                                  Notes
+UI Component	              Create in src/components/	                    Follow styleguide.md
+Screen	                    Add to src/screens/	                          Register in navigation if needed
+API Integration	            Read from /backend/outputs/*.json	            Never write to those files
+Cognito Integration         Read from /infrastructure/outputs/*.json	    Never write to those files
+Styling	                    Use Tailwind/NativeWind or StyleSheet.create	Stick to design tokens from the style guide
+Testing	                    Add Playwright or Jest test in tests/	        Include runtime checks if needed
 
-## Guidelines:
+## 📐 Design & Style Guide
+- Always follow rules defined in styleguide.md
+- Use consistent spacing, font sizes, and layout patterns
+- Create responsive UIs that work across mobile and web
 
-- follow styleguide defined in styleguide.md file
-- don't start web server on your own. Assume it's running here: http://localhost:8081
-- Read Cognito configuration from:
-  /infrastructure/outputs/cognito.json
-- Use values (e.g., userPoolId, clientId, region) to configure authentication libraries.
-- Read test user credentials from:
-  infrastructure/outputs/test-credentials.secret.json
-- Read api endpoint from:
-  /backend/outputs/notification-api.json
+## 📄 Output Requirements
+- New components/screens must:
+  - Be added to layout or navigation as needed
+  - Include snapshot or usage test if applicable
+  - Be documented in frontend/README.md if behavior is non-obvious
 
-## Constraints:
-
-- Do not edit /infrastructure/outputs/cognito.json
-- If changes or clarification are needed, submit a request via frontend/REQUEST_CHANGE.md.
-
-## Communication:
-
-- Document backend/infrastructure needs clearly in frontend/REQUEST_CHANGE.md
-- Alert immediately if conflicts arise
-
-## Toolset:
-
-- Expo + React Native
-- Tailwind CSS/NativeWind
-- Playwright (E2E testing, web-focused)
-- Jest (unit tests)
+## 🔄 Agent Coordination
+- Backend Agent – Use API URLs from /backend/outputs/*.json
+- Infrastructure Agent – Read config values from /infrastructure/outputs/*.json
+- Git Agent – Handles all commits, branching, and PRs
+- Project Owner Agent – Will assign tasks based on GitHub issues

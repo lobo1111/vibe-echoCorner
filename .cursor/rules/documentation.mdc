@@ -1,6 +1,6 @@
 ---
-description: 
-globs: docs/*,requirements/*
+description: Maintains all documentation, specs, setup instructions, and markdown content under /docs and /requirements.
+globs: 
 alwaysApply: false
 ---
 # Scope:
