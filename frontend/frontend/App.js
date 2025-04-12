@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import 'regenerator-runtime/runtime';
 import { View, Text, Alert, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Auth } from './src/config/auth';
