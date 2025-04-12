@@ -36,6 +36,13 @@ export const notificationListStyles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
   },
+  loadingContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
 });
 
 export const notificationItemStyles = StyleSheet.create({

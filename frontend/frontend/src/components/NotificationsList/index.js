@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import NotificationItem from './NotificationItem';
 import { notificationListStyles as styles } from './styles';
 
@@ -10,12 +10,16 @@ import { notificationListStyles as styles } from './styles';
  * @param {Array} props.notifications - Array of notification objects
  * @param {Function} props.onNotificationPress - Function to call when a notification is pressed
  * @param {Function} props.onSeeAllPress - Function to call when "See All" is pressed
+ * @param {boolean} props.isLoading - Whether the notifications are currently loading
+ * @param {Function} props.onRefresh - Function to call when the list is pulled to refresh
  * @returns {React.Component}
  */
 const NotificationsList = ({ 
   notifications = [], 
   onNotificationPress, 
-  onSeeAllPress 
+  onSeeAllPress,
+  isLoading = false,
+  onRefresh
 }) => {
   // In a real app, this would come from API
   // For demo, we'll mark first two as unread
@@ -40,6 +44,19 @@ const NotificationsList = ({
       </Text>
     </View>
   );
+
+  const renderRefreshControl = () => {
+    if (!onRefresh) return null;
+    
+    return (
+      <RefreshControl
+        refreshing={isLoading}
+        onRefresh={onRefresh}
+        colors={['#2A2D34']}
+        tintColor="#2A2D34"
+      />
+    );
+  };
   
   return (
     <View style={styles.container} testID="notifications-list">
@@ -56,7 +73,11 @@ const NotificationsList = ({
       </View>
       
       <View style={styles.listContainer}>
-        {notifications.length === 0 ? (
+        {isLoading && notifications.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#2A2D34" />
+          </View>
+        ) : notifications.length === 0 ? (
           renderEmptyState()
         ) : (
           <FlatList
@@ -65,6 +86,7 @@ const NotificationsList = ({
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             testID="notifications-flatlist"
+            refreshControl={renderRefreshControl()}
           />
         )}
       </View>
