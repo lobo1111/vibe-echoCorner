@@ -84,7 +84,13 @@ export default function App() {
   
   // Handle profile icon press
   const handleProfilePress = () => {
-    Alert.alert('Profile', 'Profile options will be available soon!');
+    // This is just for the icon click, not menu selection
+    // We no longer need to show an alert here as the menu will appear
+  };
+  
+  // Handle profile option selection
+  const handleProfile = () => {
+    Alert.alert('Profile', 'Profile settings will be available in a future update!');
   };
 
   // Handle user logout
@@ -122,7 +128,11 @@ export default function App() {
         />
       ) : (
         <>
-          <Header onProfilePress={handleProfilePress} onLogout={handleLogout} />
+          <Header 
+            onProfilePress={handleProfilePress} 
+            onProfile={handleProfile}
+            onLogout={handleLogout} 
+          />
           <View style={styles.contentContainer}>
             <HomeScreen />
           </View>
