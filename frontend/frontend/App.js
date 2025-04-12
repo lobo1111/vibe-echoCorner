@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Auth } from './src/config/auth';
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import ProfileIcon from './src/components/ProfileIcon';
 
 // Simple navigation state since we're having issues with React Navigation
 const SCREENS = {
@@ -77,6 +78,11 @@ export default function App() {
   const navigate = (screenName) => {
     setCurrentScreen(screenName);
   };
+  
+  // Handle profile icon press
+  const handleProfilePress = () => {
+    Alert.alert('Profile', 'Profile options will be available soon!');
+  };
 
   // Wait until auth check is complete before rendering
   if (isLoading) {
@@ -97,7 +103,11 @@ export default function App() {
           }} 
         />
       ) : (
-        <HomeScreen />
+        <>
+          <HomeScreen />
+          {/* Show profile icon only when authenticated */}
+          <ProfileIcon onPress={handleProfilePress} />
+        </>
       )}
       <StatusBar style="auto" />
     </View>
