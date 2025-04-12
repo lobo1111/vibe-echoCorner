@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import 'regenerator-runtime/runtime';
+import { View, Text, Alert, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Auth } from './src/config/auth';
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import ProfileIcon from './src/components/ProfileIcon';
+import Header from './src/components/Header';
 
 // Simple navigation state since we're having issues with React Navigation
 const SCREENS = {
@@ -46,7 +47,9 @@ const safeLocalStorage = {
 };
 
 // Make localStorage available to our Auth module in all environments
-global.localStorage = global.localStorage || safeLocalStorage;
+if (!global.localStorage) {
+  global.localStorage = safeLocalStorage;
+}
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -95,7 +98,7 @@ export default function App() {
 
   // Render the appropriate screen
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       {currentScreen === SCREENS.LOGIN ? (
         <LoginScreen 
           navigate={(screen) => {
@@ -104,12 +107,23 @@ export default function App() {
         />
       ) : (
         <>
-          <HomeScreen />
-          {/* Show profile icon only when authenticated */}
-          <ProfileIcon onPress={handleProfilePress} />
+          <Header onProfilePress={handleProfilePress} />
+          <View style={styles.contentContainer}>
+            <HomeScreen />
+          </View>
         </>
       )}
       <StatusBar style="auto" />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F4F4',
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});

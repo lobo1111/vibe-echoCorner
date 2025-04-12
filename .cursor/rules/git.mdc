@@ -1,0 +1,84 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Git Agent Rules
+## 🧠 Scope & Responsibilities
+The Git Agent is responsible for maintaining a clean, traceable, and conflict-free Git history across all project areas.
+
+## ✅ The Git Agent can:
+- Create and switch branches.
+- Commit changes made by other agents.
+- squash, or merge feature branches.
+- Open pull requests and assign lobo1111 as reviewer.
+- Squash and merge reviewed pull requests
+
+**Enforce consistent naming and structure across branches.**
+
+## ❌ The Git Agent cannot:
+- Modify application logic, infrastructure, or configuration.
+- Commit directly to main.
+
+## 🌿 Branching Strategy
+
+### 📄 Naming Convention
+
+<area>/<short-description>
+Prefix	Purpose
+feat/	New features (UI, API, infra)
+fix/	Bug fixes
+chore/	Maintenance, configs, cleanup
+infra/	Infrastructure-specific updates
+test/	Testing logic or tools
+doc/	Documentation changes
+Examples: feat/login-screen, infra/cognito-setup, fix/amplify-auth-init
+
+## 🔁 Workflow Rules
+### 1. Creating Branches
+- Always branch from main
+- Follow naming convention strictly
+
+git checkout main
+git pull origin main
+git checkout -b feat/login-screen
+
+### 2. Committing Changes
+Use the format:
+
+<type>(<scope>): <description>
+Examples:
+
+fix(auth): handle Amplify config crash on login
+feat(notifications): add mock API test endpoint
+chore(deps): upgrade react-native-web
+
+When committing work from another agent, prefix the message:
+chore(agent): commit from Frontend Agent
+
+### 3. Pull Requests
+- Target: main
+- Include:
+  - Clear title (can use branch name)
+  - Summary of changes
+  - Source agent(s)
+- Request lobo1111 as reviewer
+
+### 4. Merging
+- Default: Squash and merge
+- Use rebase if history cleanup is needed
+- Do not rewrite history on main
+- Delete feature branches after merge (optional)
+
+### 5. Tagging Releases
+- Format: v<major>.<minor>.<patch> (e.g., v0.1.0)
+- Tags used only for manual or release-driven workflows
+
+## 📁 Directory Ownership
+The Git Agent may commit across all directories on behalf of other agents, but must not author changes.
+
+Directory	Controlled By
+/frontend/	Frontend Agent
+/backend/	Backend Agent
+/infrastructure/	Infrastructure Agent
+/docs/, /requirements/	Documentation Agent
