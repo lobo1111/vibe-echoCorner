@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { TouchableOpacity, View, StyleSheet, Text, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 /**
@@ -7,20 +7,59 @@ import { Ionicons } from '@expo/vector-icons';
  * 
  * @param {Object} props Component props
  * @param {Function} props.onPress Function to call when the icon is pressed
+ * @param {Function} props.onLogout Function to call when logout is selected
  * @returns {React.Component} The ProfileIcon component
  */
-const ProfileIcon = ({ onPress }) => {
+const ProfileIcon = ({ onPress, onLogout }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleIconPress = () => {
+    setMenuVisible(true);
+    if (onPress) onPress();
+  };
+
+  const handleMenuClose = () => {
+    setMenuVisible(false);
+  };
+
+  const handleLogout = () => {
+    setMenuVisible(false);
+    if (onLogout) onLogout();
+  };
+
   return (
-    <TouchableOpacity 
-      onPress={onPress} 
-      style={styles.container} 
-      activeOpacity={0.7}
-      testID="profile-icon"
-    >
-      <View style={styles.iconContainer}>
-        <Ionicons name="person" size={24} color="#F4F4F4" />
-      </View>
-    </TouchableOpacity>
+    <View>
+      <TouchableOpacity 
+        onPress={handleIconPress} 
+        style={styles.container} 
+        activeOpacity={0.7}
+        testID="profile-icon"
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons name="person" size={24} color="#F4F4F4" />
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={handleMenuClose}
+      >
+        <Pressable style={styles.modalOverlay} onPress={handleMenuClose}>
+          <View style={styles.menuContainer}>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={handleLogout}
+              testID="logout-button"
+            >
+              <Ionicons name="log-out-outline" size={20} color="#2A2D34" />
+              <Text style={styles.menuText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
   );
 };
 
@@ -35,6 +74,37 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: '#F4F4F4',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 70,
+    marginRight: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  menuText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#2A2D34',
   },
 });
 

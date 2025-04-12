@@ -87,6 +87,21 @@ export default function App() {
     Alert.alert('Profile', 'Profile options will be available soon!');
   };
 
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await Auth.signOut();
+      setIsAuthenticated(false);
+      setCurrentScreen(SCREENS.LOGIN);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      Alert.alert('Logout Error', 'Failed to log out. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Wait until auth check is complete before rendering
   if (isLoading) {
     return (
@@ -107,7 +122,7 @@ export default function App() {
         />
       ) : (
         <>
-          <Header onProfilePress={handleProfilePress} />
+          <Header onProfilePress={handleProfilePress} onLogout={handleLogout} />
           <View style={styles.contentContainer}>
             <HomeScreen />
           </View>
