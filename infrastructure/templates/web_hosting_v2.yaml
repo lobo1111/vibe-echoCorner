@@ -153,4 +153,4 @@ Outputs:
     Description: "Secret access key for deployment user"
     Value: !GetAtt DeploymentAccessKey.SecretAccessKey
     Export:
-      Name: !Sub '${AWS::StackName}-DeploymentUserSecretAccessKey'
+      Name: !Sub '${AWS::StackName}-DeploymentUserSecretAccessKey' 
