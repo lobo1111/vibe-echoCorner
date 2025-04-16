@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Update API Gateway with CORS support for development environments'
+
+Parameters:
+  ApiGatewayId:
+    Type: String
+    Description: ID of the API Gateway to update (m97gq044y3)
+
+  StageName:
+    Type: String
+    Default: 'prod'
+    Description: Name of the API stage to update
+
+Resources:
+  ApiGatewayCorsUpdate:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayId
+      ResourceId: !ImportValue ApiGatewayRootResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{}'
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # Create a deployment without stage reference
+  ApiGatewayDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn: ApiGatewayCorsUpdate
+    Properties:
+      RestApiId: !Ref ApiGatewayId
+      Description: 'CORS enabled deployment'
+
+  # Update the stage separately to avoid issues with existing stages
+  ApiGatewayStageUpdate:
+    Type: 'AWS::ApiGateway::Stage'
+    Properties:
+      RestApiId: !Ref ApiGatewayId
+      DeploymentId: !Ref ApiGatewayDeployment
+      StageName: !Ref StageName
+      Variables:
+        AllowOrigin: '*'
+        AllowMethods: 'GET,POST,PUT,DELETE,OPTIONS'
+        AllowHeaders: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+    
+Outputs:
+  ApiGatewayUrl:
+    Value: !Sub 'https://${ApiGatewayId}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
+    Description: 'URL of the API Gateway with CORS enabled'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiGatewayUrl' 

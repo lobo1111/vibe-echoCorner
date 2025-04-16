@@ -1,35 +1,95 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import NotificationsList from '../components/NotificationsList';
-import { mockNotifications } from '../data/mockNotifications';
+import notificationService from '../services/NotificationService';
 
 const HomeScreen = () => {
-  const [notifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleNotificationPress = (notification) => {
-    Alert.alert(
-      'Notification', 
-      `You clicked on: ${notification.title}`,
-      [{ text: 'OK' }]
-    );
+  useEffect(() => {
+    // Fetch notifications when component mounts
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const notificationsData = await notificationService.getNotifications();
+      setNotifications(notificationsData);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setError(error.message || 'Failed to load notifications');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNotificationPress = async (notification) => {
+    try {
+      // Mark notification as read when clicked
+      await notificationService.markAsRead(notification.id);
+      
+      // Show notification details
+      Alert.alert(
+        'Notification', 
+        `You clicked on: ${notification.title}`,
+        [{ text: 'OK' }]
+      );
+      
+      // Refresh notifications to update read status
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error handling notification press:', error);
+      Alert.alert('Error', 'Failed to process notification');
+    }
   };
 
   const handleSeeAllPress = () => {
     Alert.alert('See All', 'View all notifications', [{ text: 'OK' }]);
   };
 
-  return (
-    <ScrollView style={styles.scrollView}>
-      <View style={styles.container}>
-        <View style={styles.welcomeContainer}>
-          <Text style={styles.welcomeTitle}>Welcome to echoCorner</Text>
-          <Text style={styles.welcomeSubtitle}>Your Feed</Text>
+  const handleRefresh = () => {
+    fetchNotifications();
+  };
+
+  const renderContent = () => {
+    if (isLoading && notifications.length === 0) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2A2D34" />
+          <Text style={styles.loadingText}>Loading notifications...</Text>
         </View>
-        
+      );
+    }
+
+    if (error && notifications.length === 0) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {error}
+          </Text>
+          <Text 
+            style={styles.retryText}
+            onPress={handleRefresh}
+          >
+            Tap to retry
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <>
         <NotificationsList 
           notifications={notifications}
           onNotificationPress={handleNotificationPress}
           onSeeAllPress={handleSeeAllPress}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
         />
         
         <View style={styles.contentSection}>
@@ -38,6 +98,22 @@ const HomeScreen = () => {
             <Text style={styles.placeholderText}>Content coming soon...</Text>
           </View>
         </View>
+      </>
+    );
+  };
+
+  return (
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={notifications.length === 0 ? styles.fullHeightContainer : null}
+    >
+      <View style={styles.container}>
+        <View style={styles.welcomeContainer}>
+          <Text style={styles.welcomeTitle}>Welcome to echoCorner</Text>
+          <Text style={styles.welcomeSubtitle}>Your Feed</Text>
+        </View>
+        
+        {renderContent()}
       </View>
     </ScrollView>
   );
@@ -47,6 +123,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: '#F4F4F4', // Secondary color from style guide
+  },
+  fullHeightContainer: {
+    flexGrow: 1,
   },
   container: {
     flex: 1,
@@ -66,6 +145,32 @@ const styles = StyleSheet.create({
   welcomeSubtitle: {
     fontSize: 16,
     color: '#505565', // Text secondary color
+  },
+  loadingContainer: {
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#505565', // Text secondary color
+  },
+  errorContainer: {
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#C53F3F', // Error color
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryText: {
+    fontSize: 16,
+    color: '#6DA9D2', // Blue accent color
+    fontWeight: '600',
   },
   contentSection: {
     paddingHorizontal: 16,
